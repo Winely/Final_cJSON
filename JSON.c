@@ -267,26 +267,28 @@ void ReplaceItem (JSON *target, JSON *new_item)
 JSON *ParseJSON(const char*value)
 {
 	JSON *json;
-	if (value[0] == '[')
+	int i = 0;
+	while (value[i] == ' ') i++;
+	if (value[i] == '[')
 		json = CreateArray();
-	else if (value[0] == '{')
+	else if (value[i] == '{')
 		json = CreateObject();
 	else
 	{
 		printf("Error: Expect a '[' or '{' !");
 		return NULL;
 	}
-	int i;
 	JSON *new_item, *status = json;
-	for (i = 1; value[i] != '\0'; i++)
+	i++;
+	for (; value[i] != '\0'; i++)
 	{
 		if (status->type == JSON_OBJECT)		//skip to ':' and skip space, if the type is object
 		{
 			while (value[i] != ':'&& value[i] != '}') i++; 
 			if(value[i] == ':') while (value[++i] == ' ');
 		}
-		if (value[i] == 't')		new_item = CreateTrue();
-		if (value[i] == 'n')		new_item = CreateNULL();
+		if (value[i] == 't')		new_item = CreateTrue();//so in fact if you type "ture" or "tell", system will fix it into "true" XD
+		else if (value[i] == 'n')		new_item = CreateNULL();//the same if you type "nuLL"
 		else if (value[i] == 'f')	new_item = CreateFalse();
 		else if (value[i] == '"')	new_item = CreateString(GetValue(value, '"', i, 1));
 		else if (value[i] == '[')	new_item = CreateArray();
@@ -309,7 +311,7 @@ JSON *ParseJSON(const char*value)
 			else
 			{
 				free(a); 
-				printf("Error: Data illegal!");	//illegal data
+				printf("Error: Data illegal!\n");	//illegal data
 				continue;
 			}
 		}
@@ -340,7 +342,7 @@ JSON *ParseJSON(const char*value)
 			}
 			else if (new_item->type == JSON_TRUE || new_item->type == JSON_FALSE)
 				i = i + 4 - new_item->type;
-			else if (new_item->type == JSON_NULL) i = i + 4;
+			else if (new_item->type == JSON_NULL) i = i + 3;
 			else if (new_item->type == JSON_STRING)
 			while (value[++i] != '"'); 
 		}
@@ -770,4 +772,12 @@ JSON *GetItemInJSON(JSON *json, const char *path)
 		while (path[++i] != '/' && path[i] != '\0');
 	}
 	return item;
+}
+
+int main()
+{
+	JSON *json = ParseJSON(" [true]");
+	PrintJSON(json);
+	system("pause");
+	return 0;
 }
