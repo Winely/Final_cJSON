@@ -12,7 +12,7 @@ int DigitTest (const char* value) //test if the value is legal number
 	int i;
 	for (i = 0; value[i] != '\0'; i++)
 	{
-		if (value[i] != '-' && value[i] != '+' &&value[i] != 'E' &&value[i] != 'e' && (value[i] <'0' || value[i] >'9'))
+		if (value[i] != '.' && value[i] != '-' && value[i] != '+' &&value[i] != 'E' &&value[i] != 'e' && (value[i] <'0' || value[i] >'9'))
 			result = -1;
 		if (i == 1)				status = 0;
 		if (i == length - 1)	status = 3;
@@ -28,18 +28,47 @@ int DigitTest (const char* value) //test if the value is legal number
 		}
 		else if (value[i] == '+' || value[i] == '-')//+ or -
 		{
-			if (i != 0 && value[i - 1] != 69 && value[i - 1] != 101)
+			if (i != 0 && value[i - 1] != 'e' && value[i - 1] != 'E')
 				result = -1;
 		}
-		else if (value[i] > '0' && value[i] < '9')//number 0~9
+		else if (value[i] >= '0' && value[i] <= '9')//number 0~9
 		{
-			if (value[i] == 48 && status == -1 && value[i + 1] != 46)
+			if (value[i] == '0' && status == -1 && value[i + 1] != '.')
 				result = -1;
 			// no change
 		}
 		else	result = -1;
 	}
 	return result;
+}
+
+char *DigitToString(double value)
+{
+	char *str = (char*)malloc(25*sizeof(char));
+	if (value - (int)value == 0) // int
+	{
+		sprintf(str, "%d", (int)value);
+	}
+	else
+	{
+		sprintf(str, "%.10lf", value);
+		int i = 0;
+		while (str[i++] != '.') ;
+		for (; str[i] != '\0'; i++)
+		{
+			while (str[i] != '0') i++;
+			int ii, result = 0;
+			for (ii = i; str[ii] != '\0'; ii++)
+			{
+				if (str[ii] != '0') result = -1;
+			}
+			if (result == 0)
+			{
+				str[i] = '\0'; return str;
+			}
+		}
+	}
+	return str;
 }
 
 int ArrayNumber (JSON *item)
@@ -75,8 +104,9 @@ void PrePrintJSON (JSON *item)//print JSON without tab
 		else if (item->type == JSON_NULL)	printf("null");
 		else if (item->type == JSON_NUMBER)
 		{
-			if (item->valuestring != NULL) printf("%s", item->valuestring);
-			else (printf("%lf", item->valuedouble));
+			char *s = DigitToString(item->valuedouble);
+			printf("%s", s);
+			free(s);
 		}
 		else if (item->type == JSON_STRING)	printf("\"%s\"", item->valuestring);
 		else if (item->type == JSON_ARRAY)
@@ -215,18 +245,7 @@ void PrintFormatJSON (FILE *fp, JSON *item, int level)
 	}
 	else if (item->type == JSON_NUMBER)
 	{
-		if (item->valuestring != NULL)
-		{
-			if (0 == PrintToFile(item->valuestring, fp)) return;
-		}
-		else
-		{
-			if (EOF == (fprintf(fp, "%lf", item->valuedouble)))
-			{
-				printf("Error: Failed to print\n");
-				return;
-			}
-		}
+		if (0 == PrintToFile(DigitToString(item->valuedouble), fp)) return;
 	}
 	else if (item->type == JSON_STRING)
 	{
