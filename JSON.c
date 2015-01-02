@@ -16,22 +16,22 @@ int DigitTest (const char* value) //test if the value is legal number
 			result = -1;
 		if (i == 1)				status = 0;
 		if (i == length - 1)	status = 3;
-		if (value[i] == '.')//dot
+		if (value[i] == '.')	//dot
 		{
 			if (status == -1 || status == 0)	status = 1;
 			else result = -1;
 		}
-		else if (value[i] == 'E' || value[i] == 'e')//E or e
+		else if (value[i] == 'E' || value[i] == 'e')	//E or e
 		{
 			if (status == 0 || status == 1)		status = 1;
 			else result = -1;
 		}
-		else if (value[i] == '+' || value[i] == '-')//+ or -
+		else if (value[i] == '+' || value[i] == '-')	//+ or -
 		{
 			if (i != 0 && value[i - 1] != 'e' && value[i - 1] != 'E')
 				result = -1;
 		}
-		else if (value[i] >= '0' && value[i] <= '9')//number 0~9
+		else if (value[i] >= '0' && value[i] <= '9')	//number 0~9
 		{
 			if (value[i] == '0' && status == -1 && value[i + 1] != '.')
 				result = -1;
@@ -43,14 +43,12 @@ int DigitTest (const char* value) //test if the value is legal number
 }
 
 char *DigitToString(double value)
-{
+{//transform double value into standard string for printing purpose
 	char *str = (char*)malloc(25*sizeof(char));
 	if (value - (int)value == 0) // int
-	{
 		sprintf(str, "%d", (int)value);
-	}
 	else
-	{
+	{//to transform numbers like "12.300000" to "12.3"
 		sprintf(str, "%.10lf", value);
 		int i = 0;
 		while (str[i++] != '.') ;
@@ -59,9 +57,7 @@ char *DigitToString(double value)
 			while (str[i] != '0') i++;
 			int ii, result = 0;
 			for (ii = i; str[ii] != '\0'; ii++)
-			{
 				if (str[ii] != '0') result = -1;
-			}
 			if (result == 0)
 			{
 				str[i] = '\0'; return str;
@@ -72,26 +68,23 @@ char *DigitToString(double value)
 }
 
 int ArrayNumber (JSON *item)
-{//retrun the ranking of the item in array ( or even object.)
+{//return the ranking of the item in array ( or even object.)
 	int num = 0;
 	JSON *p;
 	for (p = item->belongto->head; p != item; p = p->next) num++;
 	return num;
 }
 
-char *CopyString (char *string)//a new string copying the parameter value
+char *CopyString (char *string)	//a new string copying the parameter value
 {
 	char *copy = (char*)malloc(strlen(string) + 1);
 	int i;
-	for (i = 0; string[i] != '\0'; i++)
-	{
-		copy[i] = string[i];
-	}
+	for (i = 0; string[i] != '\0'; i++)	copy[i] = string[i];
 	copy[i] = '\0';
 	return copy;
 }
 
-void PrePrintJSON (JSON *item)//print JSON without tab
+void PrePrintJSON (JSON *item)	//print JSON without tab
 {
 	if (item == NULL) 
 	{
@@ -139,8 +132,9 @@ void PrePrintJSON (JSON *item)//print JSON without tab
 
 char *GetValue (const char* value, const char end, int start, int direction)
 {	//the function to copy a child string, in which the reading direction, start position and the end sign can be changed.
+	//Come someone tell me how to use [sscanf] to realize it ('_>')
 	int i, length = 0;
-	i = start + direction;//direction == 1 => read backward£»direction == -1 => read forward£»
+	i = start + direction;//direction == 1 => read backward; direction == -1 => read forward£»
 	char a;
 	while ((end != '"' && end != '/') && (a = value[i + direction*length]) != end && a != ']' && a != '}' && a != ' ' && a != ',') length++;
 	while ((end == '"' || end == '/') && (a = value[i + direction*length] != end))length++;
@@ -148,13 +142,11 @@ char *GetValue (const char* value, const char end, int start, int direction)
 	if (NULL == (getvalue = (char*)malloc((1+length)*sizeof(char)))) return NULL;
 	if (direction == -1)
 	{
-		for (i = 0; i < length; i++)
-			getvalue[i] = value[start - length + i];
+		for (i = 0; i < length; i++) getvalue[i] = value[start - length + i];
 	}
 	else if (direction == 1)
 	{
-		for (i = 0; i < length; i++)
-			getvalue[i] = value[start + 1 + i];
+		for (i = 0; i < length; i++) getvalue[i] = value[start + 1 + i];
 	}
 	getvalue[i] = '\0';
 	return getvalue;
@@ -173,7 +165,7 @@ int PrintToFile(char *value, FILE *fp)
 {
 	if (EOF == (fputs(value, fp)))
 	{
-		printf("Error: Failed to print\n");
+		printf("Error: Failed to print.\n");
 		return 0;
 	}
 	else return 1;
@@ -291,18 +283,14 @@ JSON *ParseJSON(const char*value)
 		if (status->type == JSON_OBJECT)		//skip to ':' and skip space, if the type is object
 		{
 			while (value[i] != ':'&& value[i] != '}') i++; 
-			if(value[i] == ':')while (value[++i] == ' ');
+			if(value[i] == ':') while (value[++i] == ' ');
 		}
-		if (value[i] == 't')
-			new_item = CreateTrue();
-		else if (value[i] == 'f')
-			new_item = CreateFalse();
-		else if (value[i] == '"')
-			new_item = CreateString(GetValue(value, '"', i, 1));
-		else if (value[i] == '[')
-			new_item = CreateArray();
-		else if (value[i] == '{')
-			new_item = CreateObject();
+		if (value[i] == 't')		new_item = CreateTrue();
+		if (value[i] == 'n')		new_item = CreateNULL();
+		else if (value[i] == 'f')	new_item = CreateFalse();
+		else if (value[i] == '"')	new_item = CreateString(GetValue(value, '"', i, 1));
+		else if (value[i] == '[')	new_item = CreateArray();
+		else if (value[i] == '{')	new_item = CreateObject();
 		else if (value[i] == ']' || value[i] == '}')
 		{
 			if(NULL == (status = status->belongto)) break;
@@ -352,6 +340,7 @@ JSON *ParseJSON(const char*value)
 			}
 			else if (new_item->type == JSON_TRUE || new_item->type == JSON_FALSE)
 				i = i + 4 - new_item->type;
+			else if (new_item->type == JSON_NULL) i = i + 4;
 			else if (new_item->type == JSON_STRING)
 			while (value[++i] != '"'); 
 		}
