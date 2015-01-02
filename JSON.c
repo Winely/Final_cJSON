@@ -606,7 +606,7 @@ JSON *DetachItemFromObject(JSON *object, const char *key)
 		if (p == object->end) Initialise(object);
 		else
 		{
-			object->head = p->head;
+			object->head = p->next;
 			p->next->previous = NULL;
 		}
 	}
