@@ -279,8 +279,7 @@ JSON *ParseJSON(const char*value)
 		return NULL;
 	}
 	JSON *new_item, *status = json;
-	i++;
-	for (; value[i] != '\0'; i++)
+	for (i++; value[i] != '\0'; i++)
 	{
 		if (status->type == JSON_OBJECT)		//skip to ':' and skip space, if the type is object
 		{
@@ -288,7 +287,7 @@ JSON *ParseJSON(const char*value)
 			if(value[i] == ':') while (value[++i] == ' ');
 		}
 		if (value[i] == 't')		new_item = CreateTrue();//so in fact if you type "ture" or "tell", system will fix it into "true" XD
-		else if (value[i] == 'n')		new_item = CreateNULL();//the same if you type "nuLL"
+		else if (value[i] == 'n')	new_item = CreateNULL();//the same if you type "nuLL"
 		else if (value[i] == 'f')	new_item = CreateFalse();
 		else if (value[i] == '"')	new_item = CreateString(GetValue(value, '"', i, 1));
 		else if (value[i] == '[')	new_item = CreateArray();
@@ -330,7 +329,7 @@ JSON *ParseJSON(const char*value)
 			}
 			new_item->object_key = (char*)key;
 			AddItemToObject(status, key, new_item);
-			while (value[i] != ':') i++; 		//skip bakc to ':' to avoid read again
+			while (value[i] != ':') i++; 		//skip back to ':' to avoid read again
 		}
 		else
 		{
@@ -342,7 +341,7 @@ JSON *ParseJSON(const char*value)
 			}
 			else if (new_item->type == JSON_TRUE || new_item->type == JSON_FALSE)
 				i = i + 4 - new_item->type;
-			else if (new_item->type == JSON_NULL) i = i + 3;
+			else if (new_item->type == JSON_NULL) i += 3;
 			else if (new_item->type == JSON_STRING)
 			while (value[++i] != '"'); 
 		}
@@ -378,6 +377,7 @@ JSON *ParseJSONFromFile(const char *file_name)
 	buffer[i] = '\0';
 	JSON *result = ParseJSON(buffer);
 	free(buffer);
+	fclose(fp);
 	return result;
 }
 
@@ -480,7 +480,7 @@ JSON *CreateString(const char *string)
 		{ printf("Error: Failed to create.\n"); return NULL; }
 	Initialise(p);
 	p->type = JSON_STRING;
-	p->valuestring = (char*)string;//´ýÉÌÈ¶
+	p->valuestring = (char*)string;
 	return p;
 }
 
@@ -772,12 +772,4 @@ JSON *GetItemInJSON(JSON *json, const char *path)
 		while (path[++i] != '/' && path[i] != '\0');
 	}
 	return item;
-}
-
-int main()
-{
-	JSON *json = ParseJSON(" [true]");
-	PrintJSON(json);
-	system("pause");
-	return 0;
 }
