@@ -5,7 +5,7 @@
 #include <string.h>
 
 //extra
-int DigitTest (const char* value) //test if is legal number
+int DigitTest (const char* value) //test if the value is legal number
 {
 	int status = -1, length = 0, result = 0;
 	//status:-1 => begin; 0 => int;	1 => float;	2 => exponential; 3 => end;
@@ -21,12 +21,12 @@ int DigitTest (const char* value) //test if is legal number
 			if (status == -1 || status == 0)	status = 1;
 			else result = -1;
 		}
-		else if (value[i] == 'E' || value[i] == 'e')//E或者e
+		else if (value[i] == 'E' || value[i] == 'e')//E or e
 		{
 			if (status == 0 || status == 1)		status = 1;
 			else result = -1;
 		}
-		else if (value[i] == '+' || value[i] == '-')//+或者-
+		else if (value[i] == '+' || value[i] == '-')//+ or -
 		{
 			if (i != 0 && value[i - 1] != 69 && value[i - 1] != 101)
 				result = -1;
@@ -43,14 +43,14 @@ int DigitTest (const char* value) //test if is legal number
 }
 
 int ArrayNumber (JSON *item)
-{//返回item在所属array的排位，从0开始
+{//retrun the ranking of the item in array ( or even object.)
 	int num = 0;
 	JSON *p;
 	for (p = item->belongto->head; p != item; p = p->next) num++;
 	return num;
 }
 
-char *CopyString (char *string)//新建并复制参数中的字符串
+char *CopyString (char *string)//a new string copying the parameter value
 {
 	char *copy = (char*)malloc(strlen(string) + 1);
 	int i;
@@ -62,7 +62,7 @@ char *CopyString (char *string)//新建并复制参数中的字符串
 	return copy;
 }
 
-void PrePrintJSON (JSON *item)//无换行符地打印JSON(方便递归
+void PrePrintJSON (JSON *item)//print JSON without tab
 {
 	if (item == NULL) 
 	{
@@ -79,7 +79,7 @@ void PrePrintJSON (JSON *item)//无换行符地打印JSON(方便递归
 			else (printf("%lf", item->valuedouble));
 		}
 		else if (item->type == JSON_STRING)	printf("\"%s\"", item->valuestring);
-		else if (item->type == JSON_ARRAY)//输出数组
+		else if (item->type == JSON_ARRAY)
 		{
 			printf("[");
 			JSON *p;
@@ -92,7 +92,7 @@ void PrePrintJSON (JSON *item)//无换行符地打印JSON(方便递归
 			printf("]");
 		}
 		else
-		{//输出object
+		{// print object
 			printf("{");
 			JSON *p;
 			for (p = item->head; p != NULL; p = p->next)
@@ -108,9 +108,9 @@ void PrePrintJSON (JSON *item)//无换行符地打印JSON(方便递归
 }
 
 char *GetValue (const char* value, const char end, int start, int direction)
-{	//可以设定开始位置和读取方向的截取子字符串的函数（其实我就是用不懂sscanf
+{	//the function to copy a child string, in which the reading direction, start position and the end sign can be changed.
 	int i, length = 0;
-	i = start + direction;//direction == 1 => 向后读取；direction == -1 => 向前读取；
+	i = start + direction;//direction == 1 => read backward；direction == -1 => read forward；
 	char a;
 	while ((end != '"' && end != '/') && (a = value[i + direction*length]) != end && a != ']' && a != '}' && a != ' ' && a != ',') length++;
 	while ((end == '"' || end == '/') && (a = value[i + direction*length] != end))length++;
@@ -647,14 +647,14 @@ void DeleteJSON(JSON *item)
 JSON *Duplicate(JSON *item, int recurse)
 {
 	JSON *p = NULL;
-	//不涉及指针的类型
+	//types that do not use pointers
 	if (item->type == JSON_FALSE)			p = CreateFalse();
 	else if (item->type == JSON_TRUE)		p = CreateTrue();
 	else if (item->type == JSON_NULL)		p = CreateNULL();
 	else if (item->type == JSON_NUMBER)		p = CreateNumber(item->valuedouble);
 	else
-	{//涉及指针的类型
-		if (recurse == JSON_FALSE)//不进行深度复制
+	{//types that use pointers
+		if (recurse == JSON_FALSE)
 		{
 			if (item->type == JSON_STRING)
 			{
@@ -667,7 +667,7 @@ JSON *Duplicate(JSON *item, int recurse)
 				p->end = p->end;
 			}
 			else
-			{//复制object
+			{
 				p = CreateObject();
 				p->head = item->head;
 				p->end = item->end;
@@ -679,7 +679,7 @@ JSON *Duplicate(JSON *item, int recurse)
 				p->previous = item->previous;
 			}
 		}
-		else//深度复制
+		else		//recurse
 		{
 			if (item->type == JSON_STRING)
 			{
@@ -694,7 +694,7 @@ JSON *Duplicate(JSON *item, int recurse)
 					AddItemToArray(p, Duplicate(p1, JSON_TRUE));
 				}
 			}
-			else//深度复制object
+			else	// dupliccate object
 			{
 				p = CreateObject();
 				JSON *p1;
@@ -709,7 +709,7 @@ JSON *Duplicate(JSON *item, int recurse)
 }
 
 /* Read */
-JSON *GetItemInArray(JSON *array, int which)	//用于利用下标在链表中定位
+JSON *GetItemInArray(JSON *array, int which)
 {
 	if (array == NULL || which < 0)
 	{
@@ -762,15 +762,4 @@ JSON *GetItemInJSON(JSON *json, const char *path)
 		while (path[++i] != '/' && path[i] != '\0');
 	}
 	return item;
-}
-
-//TEST
-int main()
-{
-	JSON *a, *b;
-	a = ParseJSONFromFile("E:/example.json");
-	b = GetItemInJSON(a, "/properties/courses/0");
-	PrintJSON(b);
-	system("pause");
-	return 0;
 }
