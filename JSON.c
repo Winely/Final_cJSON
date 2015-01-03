@@ -580,23 +580,7 @@ JSON *DetachItemFromArray(JSON *array, int which)
 
 void DeleteItemFromArray(JSON *array, int which)
 {
-	JSON *p1 = DetachItemFromArray(array, which);
-	if (p1 == NULL) return;
-	if (p1->type <= 4)
-	{
-		free(p1->valuestring);
-		free(p1);
-	}
-	else if (p1->type == JSON_ARRAY)
-	{
-		while (p1->head != NULL) DeleteItemFromArray(p1, 0);
-		free(p1);
-	}
-	else //p1->type == JSON_OBJECT
-	{
-		while (p1->head != NULL) DeleteItemFromObject(p1, p1->head->object_key);
-		free(p1);
-	}
+	DeleteJSON(DetachItemFromArray(array, which));
 }
 
 JSON *DetachItemFromObject(JSON *object, const char *key)
@@ -622,35 +606,25 @@ JSON *DetachItemFromObject(JSON *object, const char *key)
 
 void DeleteItemFromObject(JSON *object, const char *key)
 {
-	JSON *p1 = DetachItemFromObject(object, key);
-	if (p1 == NULL) return;
-	free(p1->object_key);
-	if (p1->type <= 4)		free(p1->valuestring);
-	else if (p1->type == JSON_ARRAY)
-	{
-		while (p1->head != NULL) DeleteItemFromArray(p1, 0);
-		free(p1);
-	}
-	else //p1->type == JSON_OBJECT
-	{
-		while (p1->head != NULL) DeleteItemFromObject(p1, p1->head->object_key);
-		free(p1);
-	}
-	free(p1);
+	DeleteJSON(DetachItemFromObject(object, key));
 }
 
 void DeleteJSON(JSON *item)
 {
-	if (item == NULL) 
-	{ free(item); return; }
-	if (item->belongto != NULL)
+	free(item->object_key);
+	switch (item->type)
 	{
-		if (item->belongto->type == JSON_ARRAY)
-			DeleteItemFromArray(item->belongto, ArrayNumber(item));
-		else if (item->belongto->type == JSON_OBJECT)
-			DeleteItemFromObject(item->belongto, item->object_key);
+	case JSON_ARRAY: 
+		while (!item->head) DeleteItemFromArray(item, 0); 
+		free(item); break;
+	case JSON_OBJECT:
+		while (!item->head) DeleteItemFromObject(item, item->head->object_key);
+		free(item); break;
+	case JSON_STRING: 
+		free(item->valuestring); free(item); break;
+	default: free(item);
+		break;
 	}
-	else free(item);
 }
 
 /* Duplicate */
