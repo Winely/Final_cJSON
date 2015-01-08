@@ -136,7 +136,7 @@ char *GetValue (const char* value, const char end, int start, int direction)
 	int i, length = 0;
 	i = start + direction;//direction == 1 => read backward; direction == -1 => read forward£»
 	char a;
-	while ((end != '"' && end != '/') && (a = value[i + direction*length]) != end && a != ']' && a != '}' && a != ' ' && a != ',') length++;
+	while ((end != '"' && end != '/') && (a = value[i + direction*length]) != end && a != ']' && a != '}' && a != ' ' && a != ',' && a != '\n') length++;
 	while ((end == '"' || end == '/') && (a = value[i + direction*length] != end))length++;
 	char *getvalue;
 	if (NULL == (getvalue = (char*)malloc((1+length)*sizeof(char)))) return NULL;
@@ -211,7 +211,7 @@ void PrintFormatJSON (FILE *fp, JSON *item, int level)
 			PrintTab(fp, level + 1);
 			if (0 == PrintToFile("\"", fp)) return;
 			if (0 == PrintToFile(p1->object_key, fp)) return;
-			if (0 == PrintToFile("\":", fp)) return;
+			if (0 == PrintToFile("\": ", fp)) return;
 			PrintFormatJSON(fp, p1, level + 1);
 			if (p1->next != NULL)
 			{
@@ -297,7 +297,7 @@ JSON *ParseJSON(const char*value)
 			if(NULL == (status = status->belongto)) break;
 			continue;
 		}
-		else if (value[i] == ' ' || value[i] == ',' || value[i] == '\n' || value[i] == '\t') 
+		else if (value[i] == '\n' || value[i] == ' ' || value[i] == ',' || value[i] == '\n' || value[i] == '\t') 
 			continue;
 		else
 		{
@@ -351,6 +351,7 @@ JSON *ParseJSON(const char*value)
 			while (value[i] != '[' && value[i] != '{') i++;
 		}
 	}
+	printf("JSON parsing done.\n");
 	return json;
 }
 
@@ -398,6 +399,7 @@ void PrintJSONToFile(JSON *item, const char *file_name)
 	PrintFormatJSON(fp, item, 0);
 	fputs("\n", fp);
 	fclose(fp);
+	printf("Success printing item to %s.\n", file_name);
 }
 
 // Create
