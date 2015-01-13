@@ -263,20 +263,37 @@ void ReplaceItem (JSON *target, JSON *new_item)
 		target->next->previous = new_item;
 }
 
+int IsSpace(const char *value, int start)
+{//to judge if value is space
+	for (int i = start; value[i] != '\0'; i++)
+	if (value[i] != ' ' && value[i] != '\n' && value[i] != '\t') return 0;
+	return 1;
+}
+
 // Parse & Print
 JSON *ParseJSON(const char*value)
 {
+	char *str;
 	JSON *json;
 	int i = 0;
 	while (value[i] == ' ') i++;
-	if (value[i] == '[')
-		json = CreateArray();
-	else if (value[i] == '{')
-		json = CreateObject();
-	else
+	switch (value[i])
 	{
-		printf("Error: Expect a '[' or '{' !");
-		return NULL;
+	case '"':	return (CreateString(GetValue(value, '"', i, 1)));
+	case 't':	if (value[i + 1] == 'r' && value[i + 2] == 'u' && value[i + 3] == 'e' && IsSpace(value, i + 4)) return(CreateTrue());
+				else { printf("Error: Data illegal!\n"); return NULL; }
+	case'f':	if (value[i + 1] == 'a' && value[i + 2] == 'l' && value[i + 3] == 's' && value[i + 4] == 'e' && IsSpace(value, i + 5)) return(CreateFalse());
+				else{ printf("Error: Data illegal!\n"); return NULL; }
+	case'[':	json = CreateArray(); break;
+	case'{':	json = CreateObject(); break;
+	case'+':case'-':case'0':case'1':case'2':case'3':case'4':case'5':case'6':case'7':case'8':case'9': 
+		str = GetValue(value, ' ', i - 1, 1);
+		if (0 == DigitTest(str)) 
+		{
+			json = CreateNumber(atof(str)); free(str); return json;
+		}
+		else{ printf("Error: Data illegal!\n"); free(str); return NULL; }
+	default: printf("Error: Data illegal!\n");	return NULL;
 	}
 	JSON *new_item, *status = json;
 	for (i++; value[i] != '\0'; i++)
@@ -294,7 +311,11 @@ JSON *ParseJSON(const char*value)
 		else if (value[i] == '{')	new_item = CreateObject();
 		else if (value[i] == ']' || value[i] == '}')
 		{
-			if(NULL == (status = status->belongto)) break;
+			if (NULL == (status = status->belongto))
+			{
+				if (IsSpace(value, i + 1)) break;
+				else { printf("Error: Data illegal!\n"); break; }
+			}
 			continue;
 		}
 		else if (value[i] == '\n' || value[i] == ' ' || value[i] == ',' || value[i] == '\n' || value[i] == '\t') 
@@ -613,7 +634,14 @@ void DeleteItemFromObject(JSON *object, const char *key)
 
 void DeleteJSON(JSON *item)
 {
+	if (!item) return;
 	free(item->object_key);
+	switch (item->belongto->type)
+	{
+	case JSON_ARRAY: DetachItemFromArray(item->belongto, ArrayNumber(item)); break;
+	case JSON_OBJECT:DetachItemFromObject(item->belongto, item->object_key); break;
+	default:break;
+	}
 	switch (item->type)
 	{
 	case JSON_ARRAY: 
@@ -748,4 +776,11 @@ JSON *GetItemInJSON(JSON *json, const char *path)
 		while (path[++i] != '/' && path[i] != '\0');
 	}
 	return item;
+}
+
+int main()
+{
+	JSON *json = ParseJSONFromFile("E:/test.txt");
+	PrintJSONToFile(json, "E:/hello.txt");
+	return 0;
 }
