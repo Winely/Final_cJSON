@@ -777,10 +777,3 @@ JSON *GetItemInJSON(JSON *json, const char *path)
 	}
 	return item;
 }
-
-int main()
-{
-	JSON *json = ParseJSONFromFile("E:/test.txt");
-	PrintJSONToFile(json, "E:/hello.txt");
-	return 0;
-}
